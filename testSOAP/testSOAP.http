@@ -1,0 +1,26 @@
+@testSOAP_HostAddress = https://localhost:7132
+
+GET {{testSOAP_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{testSOAP_HostAddress}}/weatherforecast/getall
+
+###
+
+GET {{testSOAP_HostAddress}}/home
+
+###
+
+GET {{testSOAP_HostAddress}}/weatherforecast
+
+###
+
+GET {{testSOAP_HostAddress}}/api/weatherforecast/getall
+
+###
+
+GET {{testSOAP_HostAddress}}/api/home/getall
+
+###
