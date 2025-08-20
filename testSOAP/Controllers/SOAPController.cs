@@ -4,7 +4,7 @@ using Hl7.Fhir.Serialization;
 namespace testSOAP.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/data")]///example path you can change it 
 
     public class SOAPController : ControllerBase
     {
@@ -49,7 +49,7 @@ namespace testSOAP.Controllers
                 {
                     Reference = "Organization/org123"
                 },
-               
+
 
             };
             // doctor or nurse or assistant data model
@@ -64,14 +64,15 @@ namespace testSOAP.Controllers
                         Given = new List<string> { "Jane" } }
                     }
                 },
-                Address= new List<Address>
+                Address = new List<Address>
                 {
                     new Address
                     {
                         Line = new List<string>{ "456 Elm St" },
                     },
-                },Gender = AdministrativeGender.Male,
-                Qualification=new List<Practitioner.QualificationComponent>
+                },
+                Gender = AdministrativeGender.Male,
+                Qualification = new List<Practitioner.QualificationComponent>
                 {
                     new Practitioner.QualificationComponent
                     {
@@ -89,7 +90,7 @@ namespace testSOAP.Controllers
                         }
                     }
                 },
-               
+
             };
             // hospital or clinic data model
             Organization hospital = new Organization
@@ -173,19 +174,35 @@ namespace testSOAP.Controllers
             {
                 Id = "app123",
                 Status = Appointment.AppointmentStatus.Booked,
-                Start = DateTimeOffset.Now,
-                End = DateTimeOffset.Now.AddHours(1)
+
+                Start = new DateTimeOffset(2025, 8, 25, 9, 0, 0, TimeSpan.Zero), // 9:00 AM UTC
+                End = new DateTimeOffset(2025, 8, 25, 10, 0, 0, TimeSpan.Zero),
+
+                Participant = new List<Appointment.ParticipantComponent>
+                {
+                    new Appointment.ParticipantComponent
+                    {
+                        Actor = new ResourceReference
+                        {
+                            Reference = $"Patient/{patient.Id}"
+                        },
+                       // Status = ParticipationStatus.Accepted
+                    },
+                    new Appointment.ParticipantComponent
+                    {
+                        Actor = new ResourceReference
+                        {
+                            Reference = $"Practitioner/{doctor.Id}"
+                        },
+                       // Status = ParticipationStatus.Accepted
+                    }
+                }
             };
             // encounter data model when patient arrives at hospital 
             Encounter encounter = new Encounter
             {
                 Id = "enc123",
-                Status = Encounter.EncounterStatus.InProgress,
-                Class = new Coding
-                {
-                    System = "http://terminology.hl7.org/CodeSystem/v3-ActCode",
-                    Code = "AMB"
-                },
+                Status = Encounter.EncounterStatus.Arrived,
                 Subject = new ResourceReference
                 {
                     Reference = $"Patient/{patient.Id}"
@@ -226,7 +243,7 @@ namespace testSOAP.Controllers
             // soap note data model
             Composition soapNote = new Composition
             {
-                Status =CompositionStatus.Final,
+                Status = CompositionStatus.Final,
                 Type = new CodeableConcept("http://loinc.org", "11488-4", "SOAP note"),
                 Subject = new ResourceReference("Patient/123", "John Doe"),
                 DateElement = new FhirDateTime(DateTime.UtcNow),
@@ -282,13 +299,327 @@ namespace testSOAP.Controllers
             }
         };
             #endregion
-            return patient.ToJson() + "\n" +
-                   hospital.ToJson() + "\n" +
-                   appointment.ToJson() + "\n" +
-                   encounter.ToJson() + "\n" +
-                   soapNote.ToJson();
+            //JsonResult result = new JsonResult(patient);
+            
+            //return result;
+              return patient.ToJson() + "\n" +
+                  doctor.ToJson() + "\n" +
+                     hospital.ToJson() + "\n" +
+                     appointment.ToJson() + "\n" +
+                     encounter.ToJson() + "\n" +
+                       condition.ToJson() + "\n" +
+                     soapNote.ToJson();
 
+        }
+
+
+        [HttpGet("patient/{id}")] /// strict get path don't change
+        public JsonResult GetPatient(string id)
+        {
+            Patient patient = new Patient
+            {
+                Id = id,
+                Name = new List<HumanName>
+                {
+                    new HumanName
+                    {
+                        Family = "Doe",
+                        Given = new List<string> { "John" }
+                    }
+                },
+                BirthDate = "1980-01-01",
+                Active = true,
+                Gender = AdministrativeGender.Male,
+                Telecom = new List<ContactPoint>
+                {
+                    new ContactPoint
+                    {
+                        System = ContactPoint.ContactPointSystem.Phone,
+                        Value = "555-1234"
+                    }
+                },
+                GeneralPractitioner = new List<ResourceReference>
+                {
+                    new ResourceReference
+                    {
+                        Reference = "Practitioner/doc123"
+                    }
+                },
+                ManagingOrganization = new ResourceReference
+                {
+                    Reference = "Organization/org123"
+                }
+            };
+            return new JsonResult(patient);
+        }
+
+        [HttpGet("practitioner/{id}")]
+        public JsonResult GetPractitioner(string id)
+        {
+            Practitioner practitioner = new Practitioner
+            {
+                Id = id,
+                Active = true,
+                Name = new List<HumanName>
+                {
+                    new HumanName
+                    {
+                        Family = "Smith",
+                        Given = new List<string> { "Jane" }
+                    }
+                },
+                Address = new List<Address>
+                {
+                    new Address
+                    {
+                        Line = new List<string>{ "456 Elm St" }
+                    }
+                },
+                Gender = AdministrativeGender.Male,
+                Qualification = new List<Practitioner.QualificationComponent>
+                {
+                    new Practitioner.QualificationComponent
+                    {
+                        Code = new CodeableConcept
+                        {
+                            Coding = new List<Coding>
+                            {
+                                new Coding
+                                {
+                                    System = "http://terminology.hl7.org/CodeSystem/v2-0360/2.7",
+                                    Code = "MD",
+                                    Display = "Doctor of Medicine"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            return new JsonResult(practitioner);
+        }
+
+        [HttpGet("organization/{id}")]
+        public JsonResult GetOrganization(string id)
+        {
+            Organization organization = new Organization
+            {
+                Id = id,
+                Name = "Example Healthcare Organization",
+                Telecom = new List<ContactPoint>
+                {
+                    new ContactPoint
+                    {
+                        System = ContactPoint.ContactPointSystem.Phone,
+                        Value = "123-456-7890"
+                    }
+                },
+                Address = new List<Address>
+                {
+                    new Address
+                    {
+                        Line = new List<string> { "123 Main St" },
+                        City = "Anytown",
+                        State = "CA",
+                        PostalCode = "12345"
+                    }
+                },
+                Type = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                        {
+                            new Coding
+                            {
+                                System = "http://terminology.hl7.org/CodeSystem/organization-type",
+                                Code = "prov",
+                                Display = "Healthcare Provider"
+                            }
+                        }
+                    }
+                },
+                Active = true
+            };
+            return new JsonResult(organization);
+        }
+
+        [HttpGet("practitionerRole/{id}")]
+        public JsonResult GetPractitionerRole(string id)
+        {
+            PractitionerRole practitionerRole = new PractitionerRole
+            {
+                Id = id,
+                Active = true,
+                Practitioner = new ResourceReference
+                {
+                    Reference = "Practitioner/doc123"
+                },
+                Organization = new ResourceReference
+                {
+                    Reference = "Organization/org123"
+                },
+                Code = new List<CodeableConcept>
+                {
+                    new CodeableConcept
+                    {
+                        Coding = new List<Coding>
+                        {
+                            new Coding
+                            {
+                                System = "http://terminology.hl7.org/CodeSystem/practitioner-role",
+                                Code = "doctor",
+                                Display = "Doctor"
+                            }
+                        }
+                    }
+                }
+            };
+            return new JsonResult(practitionerRole);
+        }
+
+        [HttpGet("appointment/{id}")]
+        public JsonResult GetAppointment(string id)
+        {
+            Appointment appointment = new Appointment
+            {
+                Id = id,
+                Status = Appointment.AppointmentStatus.Booked,
+                Start = new DateTimeOffset(2025, 8, 25, 9, 0, 0, TimeSpan.Zero),
+                End = new DateTimeOffset(2025, 8, 25, 10, 0, 0, TimeSpan.Zero),
+                Participant = new List<Appointment.ParticipantComponent>
+                {
+                    new Appointment.ParticipantComponent
+                    {
+                        Actor = new ResourceReference
+                        {
+                            Reference = "Patient/12345"
+                        }
+                    },
+                    new Appointment.ParticipantComponent
+                    {
+                        Actor = new ResourceReference
+                        {
+                            Reference = "Practitioner/doc123"
+                        }
+                    }
+                }
+            };
+            return new JsonResult(appointment);
+        }
+
+        [HttpGet("encounter/{id}")]
+        public JsonResult GetEncounter(string id)
+        {
+            Encounter encounter = new Encounter
+            {
+                Id = id,
+                Status = Encounter.EncounterStatus.Arrived,
+                Subject = new ResourceReference
+                {
+                    Reference = "Patient/12345"
+                },
+                Appointment = new List<ResourceReference>
+                {
+                    new ResourceReference
+                    {
+                        Reference = "Appointment/app123"
+                    }
+                },
+                Location = new List<Encounter.LocationComponent>
+                {
+                    new Encounter.LocationComponent
+                    {
+                        Location = new ResourceReference
+                        {
+                            Reference = "Organization/org123"
+                        }
+                    }
+                }
+            };
+            return new JsonResult(encounter);
+        }
+
+        [HttpGet("condition/{id}")]
+        public JsonResult GetCondition(string id)
+        {
+            Condition condition = new Condition
+            {
+                Id = id,
+                Text = new Narrative
+                {
+                    Status = Narrative.NarrativeStatus.Generated,
+                    Div = "<div>Patient has a history of hypertension.</div>"
+                },
+                Subject = new ResourceReference
+                {
+                    Reference = "Patient/12345"
+                }
+            };
+            return new JsonResult(condition);
+        }
+
+        [HttpGet("soapnote/{id}")]
+        public JsonResult GetSoapNote(string id)
+        {
+            Composition soapNote = new Composition
+            {
+                Id = id,
+                Status = CompositionStatus.Final,
+                Type = new CodeableConcept("http://loinc.org", "11488-4", "SOAP note"),
+                Subject = new ResourceReference("Patient/123", "John Doe"),
+                DateElement = new FhirDateTime(DateTime.UtcNow),
+                Author = new List<ResourceReference>
+                {
+                    new ResourceReference("Practitioner/456", "Dr. Ali Mohammed")
+                },
+                Title = "SOAP Note for John Doe",
+                Section = new List<Composition.SectionComponent>
+                {
+                    new Composition.SectionComponent
+                    {
+                        Title = "Subjective",
+                        Code = new CodeableConcept("http://loinc.org", "10164-2", "History of Present Illness"),
+                        Text = new Narrative
+                        {
+                            Status = Narrative.NarrativeStatus.Generated,
+                            Div = "<div xmlns='http://www.w3.org/1999/xhtml'>Patient reports chest pain for 3 days.</div>"
+                        }
+                    },
+                    new Composition.SectionComponent
+                    {
+                        Title = "Objective",
+                        Code = new CodeableConcept("http://loinc.org", "29545-1", "Physical findings"),
+                        Text = new Narrative
+                        {
+                            Status = Narrative.NarrativeStatus.Generated,
+                            Div = "<div xmlns='http://www.w3.org/1999/xhtml'>BP 140/90, HR 88, ECG abnormal.</div>"
+                        }
+                    },
+                    new Composition.SectionComponent
+                    {
+                        Title = "Assessment",
+                        Code = new CodeableConcept("http://loinc.org", "51848-0", "Assessment note"),
+                        Text = new Narrative
+                        {
+                            Status = Narrative.NarrativeStatus.Generated,
+                            Div = "<div xmlns='http://www.w3.org/1999/xhtml'>Possible angina.</div>"
+                        }
+                    },
+                    new Composition.SectionComponent
+                    {
+                        Title = "Plan",
+                        Code = new CodeableConcept("http://loinc.org", "18776-5", "Treatment plan"),
+                        Text = new Narrative
+                        {
+                            Status = Narrative.NarrativeStatus.Generated,
+                            Div = "<div xmlns='http://www.w3.org/1999/xhtml'>Schedule stress test, start aspirin.</div>"
+                        }
+                    }
+                }
+            };
+            return new JsonResult(soapNote);
         }
     }
 }
+
 
