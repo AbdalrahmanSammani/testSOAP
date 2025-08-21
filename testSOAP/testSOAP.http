@@ -12,3 +12,11 @@ GET {{testSOAP_HostAddress}}/api/data/getall
 GET {{testSOAP_HostAddress}}/api/data/appointment/{{id}}
 
 ###
+
+GET {{testSOAP_HostAddress}}/api/data/getall
+
+###
+
+GET {{testSOAP_HostAddress}}/api/data/soapnote/{{id}}
+
+###

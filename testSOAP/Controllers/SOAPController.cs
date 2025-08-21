@@ -80,12 +80,12 @@ namespace testSOAP.Controllers
                         {
                             Coding = new List<Coding>
                             {
-                                new Coding
-                                {
-                                    System = "http://terminology.hl7.org/CodeSystem/v2-0360/2.7",
-                                    Code = "MD",
-                                    Display = "Doctor of Medicine"
-                                }
+                               new Coding
+                            {
+                                System = "http://snomed.info/sct",
+                                Code = " 1421009",
+                                Display = "Specialized surgeon"
+                            }
                             }
                         }
                     }
@@ -97,24 +97,29 @@ namespace testSOAP.Controllers
             {
                 Id = "org123",
                 Name = "Example Healthcare Organization",
-                Telecom = new List<ContactPoint>
-            {
-                new ContactPoint
+                Contact= new List<ExtendedContactDetail>
                 {
-                    System = ContactPoint.ContactPointSystem.Phone,
-                    Value = "123-456-7890"
-                }
-            },
-                Address = new List<Address>
-            {
-                new Address
-                {
-                    Line = new List<string> { "123 Main St" },
-                    City = "Anytown",
-                    State = "CA",
-                    PostalCode = "12345"
-                }
+                    new ExtendedContactDetail
+                    {
+                        Address = new Address
+                        {
+                            Line = new List<string> { "123 Main St" },
+                            City = "Anytown",
+                            State = "CA",
+                            PostalCode = "12345"
+                        },
+                        Telecom= new List<ContactPoint>
+                        {
+                            new ContactPoint
+                            {
+                                System = ContactPoint.ContactPointSystem.Phone,
+                                Value = "123-456-7890"
+                            }
+                        }
+                    }
                 },
+               
+                
                 Type = new List<CodeableConcept>
                 {
                     new CodeableConcept
@@ -202,7 +207,7 @@ namespace testSOAP.Controllers
             Encounter encounter = new Encounter
             {
                 Id = "enc123",
-                Status = Encounter.EncounterStatus.Arrived,
+                Status = EncounterStatus.Completed,
                 Subject = new ResourceReference
                 {
                     Reference = $"Patient/{patient.Id}"
@@ -245,7 +250,10 @@ namespace testSOAP.Controllers
             {
                 Status = CompositionStatus.Final,
                 Type = new CodeableConcept("http://loinc.org", "11488-4", "SOAP note"),
-                Subject = new ResourceReference("Patient/123", "John Doe"),
+                Subject =new List<ResourceReference>
+                {
+                    new ResourceReference("Patient/123", "John Doe")
+                } ,
                 DateElement = new FhirDateTime(DateTime.UtcNow),
                 Author = new List<ResourceReference>
             {
@@ -384,12 +392,12 @@ namespace testSOAP.Controllers
                         {
                             Coding = new List<Coding>
                             {
-                                new Coding
-                                {
-                                    System = "http://terminology.hl7.org/CodeSystem/v2-0360/2.7",
-                                    Code = "MD",
-                                    Display = "Doctor of Medicine"
-                                }
+                               new Coding
+                            {
+                                System = "http://snomed.info/sct",
+                                Code = " 1421009",
+                                Display = "Specialized surgeon"
+                            }
                             }
                         }
                     }
@@ -405,22 +413,25 @@ namespace testSOAP.Controllers
             {
                 Id = id,
                 Name = "Example Healthcare Organization",
-                Telecom = new List<ContactPoint>
+               Contact= new List<ExtendedContactDetail>
                 {
-                    new ContactPoint
+                    new ExtendedContactDetail
                     {
-                        System = ContactPoint.ContactPointSystem.Phone,
-                        Value = "123-456-7890"
-                    }
-                },
-                Address = new List<Address>
-                {
-                    new Address
-                    {
-                        Line = new List<string> { "123 Main St" },
-                        City = "Anytown",
-                        State = "CA",
-                        PostalCode = "12345"
+                        Address = new Address
+                        {
+                            Line = new List<string> { "123 Main St" },
+                            City = "Anytown",
+                            State = "CA",
+                            PostalCode = "12345"
+                        },
+                        Telecom = new List<ContactPoint>
+                        {
+                            new ContactPoint
+                            {
+                                System = ContactPoint.ContactPointSystem.Phone,
+                                Value = "123-456-7890"
+                            }
+                        }
                     }
                 },
                 Type = new List<CodeableConcept>
@@ -467,12 +478,12 @@ namespace testSOAP.Controllers
                             new Coding
                             {
                                 System = "http://terminology.hl7.org/CodeSystem/practitioner-role",
-                                Code = "doctor",
-                                Display = "Doctor"
+                                Code = "nurse",
+                                Display = "Nurse"
                             }
                         }
                     }
-                }
+                },
             };
             return new JsonResult(practitionerRole);
         }
@@ -513,7 +524,7 @@ namespace testSOAP.Controllers
             Encounter encounter = new Encounter
             {
                 Id = id,
-                Status = Encounter.EncounterStatus.Arrived,
+                Status =EncounterStatus.Completed,
                 Subject = new ResourceReference
                 {
                     Reference = "Patient/12345"
@@ -558,7 +569,7 @@ namespace testSOAP.Controllers
             return new JsonResult(condition);
         }
 
-        [HttpGet("soapnote/{id}")]
+        [HttpGet("composition/{id}")]
         public JsonResult GetSoapNote(string id)
         {
             Composition soapNote = new Composition
@@ -566,7 +577,10 @@ namespace testSOAP.Controllers
                 Id = id,
                 Status = CompositionStatus.Final,
                 Type = new CodeableConcept("http://loinc.org", "11488-4", "SOAP note"),
-                Subject = new ResourceReference("Patient/123", "John Doe"),
+                Subject = new List<ResourceReference>
+                {
+                    new ResourceReference("Patient/123", "John Doe")
+                },
                 DateElement = new FhirDateTime(DateTime.UtcNow),
                 Author = new List<ResourceReference>
                 {
